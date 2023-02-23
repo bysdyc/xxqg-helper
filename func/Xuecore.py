@@ -25,23 +25,6 @@ class XCore:
             self.options = Options()
             self.nohead = nohead
             # 判断Chrome 位置，linux&macos 后期再加入输入参数，暂时统一处理
-            if os.path.exists(get_appsyspatch() + "\App\chrome.exe"):
-                chrome_app_path = get_appsyspatch() + "\App\chrome.exe"
-                chrome_driver_path = get_appsyspatch() + "\App\chromedriver.exe"
-            else:
-                if os.path.exists("C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"):  # win
-                    chrome_app_path = "C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"
-                    chrome_driver_path = get_appsyspatch() + "\App\chromedriver.exe"
-                elif os.path.exists("/usr/lib/chromium/chromium"):  # linux & macos
-                    chrome_app_path = "/usr/lib/chromium/chromium"
-                    chrome_driver_path = "/usr/lib/chromium/chromedriver"
-                elif os.path.exists("/usr/lib/chromium/chrome"):  # alpine
-                    chrome_app_path = "/usr/lib/chromium/chrome"
-                    chrome_driver_path = "/usr/lib/chromium/chromedriver"
-                else:
-                    print("@启动失败，程序包已损坏")
-                    os._exit(0)
-            self.options.binary_location = chrome_app_path
             # 初始二维码窗口大小
             windows_size = '--window-size=500,450'
             user_agent_set = self.getheaders()  # 随机UA
@@ -84,8 +67,7 @@ class XCore:
                 'useAutomationExtension', False)
 
             self.webdriver = webdriver
-            self.driver = self.webdriver.Chrome(
-                chrome_driver_path, chrome_options=self.options)
+            self.driver = self.webdriver.Chrome(chrome_options=self.options)
             # 加载屏蔽Webdriver标识脚本
             if nofake == False:
                 try:
