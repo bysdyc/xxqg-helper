@@ -1,3 +1,4 @@
+import func.common
 from func.common import *
 from func.urls import *
 
@@ -8,8 +9,8 @@ def get_userInfo(cookies):
     jar = RequestsCookieJar()
     for cookie in cookies:
         jar.set(cookie['name'], cookie['value'])
-    userInfo_json = requests.get(user_Info_url, cookies=jar, headers={
-                                 'Cache-Control': 'no-cache'}).content.decode("utf8")
+    custom_headers = {'Cache-Control': 'no-cache', 'User-Agent': func.common.user_agent}
+    userInfo_json = requests.get(user_Info_url, cookies=jar, headers=custom_headers).content.decode("utf8")
     userInfo_uid = json.loads(userInfo_json)["data"]["uid"]
     userInfo_nick = json.loads(userInfo_json)["data"]["nick"]
     # 记录登录信息到本地
@@ -179,7 +180,7 @@ def get_user_cookie(userID):
 
 def get_cookie_expire_second(cookie):
     for d in cookie:
-        if 'name' in d and 'value' in d and 'expiry' in d:
+        if 'name' in d and 'value' in d and 'expiry' in d and d['name'] == 'token':
             expiry_date = int(d['expiry'])
             return expiry_date - (int)(time.time())
     return 0

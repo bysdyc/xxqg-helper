@@ -1,3 +1,4 @@
+import func.common
 from func.common import *
 from func.user import *
 import selenium
@@ -27,8 +28,9 @@ class XCore:
             # 判断Chrome 位置，linux&macos 后期再加入输入参数，暂时统一处理
             # 初始二维码窗口大小
             windows_size = '--window-size=500,450'
-            user_agent_set = self.getheaders()  # 随机UA
-            self.options.add_argument(f'--user-agent={user_agent_set}')
+            # user_agent_set = self.getheaders()  # 随机UA
+            if func.common.user_agent != "":
+                self.options.add_argument(f'--user-agent={func.common.user_agent}')
             if noimg:
                 self.options.add_argument(
                     'blink-settings=imagesEnabled=true')  # 不加载图片, 提升速度，但无法显示二维码
@@ -71,18 +73,27 @@ class XCore:
             # 加载屏蔽Webdriver标识脚本
             if nofake == False:
                 try:
-                    net_stealth = requests.get(
-                        "https://cdn.jsdelivr.net/gh/requireCool/stealth.min.js/stealth.min.js").content.decode("utf8")
+                    with open('./stealth.min.js') as f:
+                        net_stealth = f.read()
+                    # net_stealth = requests.get(
+                    #     "https://ghproxy.com/https://raw.githubusercontent.com/requireCool/stealth.min.js/main"
+                    #     "/stealth.min.js").content.decode("utf8")
                     self.driver.execute_cdp_cmd("Page.addScriptToEvaluateOnNewDocument", {
                         "source": net_stealth
                     })
-                except:
+                    print("stealth.min.js加载成功")
+                except Exception as e:
+                    print("stealth.min.js加载失败：" + str(e))
                     pass
         except:
             print("=" * 60)
             print("内置驱动初始化失败")
             print("=" * 60)
             raise
+
+    def getUserAgent(self):
+        ua = self.driver.execute_script("return navigator.userAgent")
+        return ua.replace("HeadlessChrome", "Chrome")
 
     def getheaders(self):
         fake_useragent = [
@@ -154,7 +165,7 @@ class XCore:
                     url = "dtxuexi://appclient/page/study_feeds?url=" + \
                         urllib.parse.quote(decocdeQR[0].data.decode('ascii'))
                     print("发送二维码...\n" + "=" * 60)
-                    URID = self.sendMessage(msg=url, mode="link")
+                    URID = self.sendMessage(msg={"url": url, "qrcode": QRcode_src}, mode="link")
                 else:
                     print("等待用户扫描二维码...\n" + "=" * 60)
                 try:
@@ -243,7 +254,7 @@ class XCore:
                 print("出现滑块验证。")
                 time.sleep(1)
                 self.swiper_valid()
-                time.sleep(5)
+                time.sleep(3)
                 if self.driver.find_elements_by_class_name("nc-mask-display"):
                     print("滑块解锁失败，进行重试。")
                     continue
@@ -268,10 +279,8 @@ class XCore:
             for i in track:
                 builder.move_by_offset(xoffset=i, yoffset=0)
                 builder.reset_actions()
-            time.sleep(1)
             # 释放左键，执行for中的操作
             builder.release().perform()
-            time.sleep(5)
             self.swiper_valid()
         except Exception as e:
             pass
